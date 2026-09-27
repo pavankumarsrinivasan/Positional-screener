@@ -70,6 +70,12 @@ def month_close_and_prior_52w_high(ticker: str, asof: dt.date):
     if hist.empty:
         return None
 
+    # Recent yfinance versions return multi-level columns (ticker, field)
+    # even for a single-ticker download — flatten so hist["Close"] is a
+    # plain Series instead of a nested one-column frame.
+    if isinstance(hist.columns, pd.MultiIndex):
+        hist.columns = hist.columns.get_level_values(0)
+
     close_series = hist["Close"].dropna()
     latest_close = close_series.iloc[-1]
 
