@@ -8,6 +8,9 @@ Fully free data sources:
 Logic (per Kiru's description of the AQR/Asness 52-week-high momentum approach):
     ratio = latest month-end close / 52-week high AS OF THE PRIOR MONTH
 Rank all NSE500 stocks by that ratio descending; top N = highest momentum.
+Stocks with under ~230 trading days of prior history (recent IPOs) are
+excluded, since a short "52-week high" is trivially easy to beat and
+would otherwise inflate their ratio unfairly.
 
 Run this monthly (1st trading day of the month, after the previous month has
 closed) e.g. via a GitHub Actions cron job. Takes roughly 5-10 minutes for
@@ -25,6 +28,14 @@ import requests
 import yfinance as yf
 
 NSE500_CSV_URL = "https://nsearchives.nseindia.com/content/indices/ind_nifty500list.csv"
+
+# Minimum trading days required in the prior-52-week window before a stock
+# is eligible to be ranked. Recently-listed stocks (IPOs) haven't had a full
+# year to trade, so their "52-week high" is really just "highest close since
+# listing" — a much lower bar that artificially inflates their ratio. ~230
+# trading days is roughly 11 months, filtering out anything without close to
+# a full year of history while still allowing for holidays/gaps.
+MIN_HISTORY_DAYS = 230
 
 # NSE blocks requests without a browser-like User-Agent / referer and without
 # first "warming up" a session to pick up cookies.
@@ -81,7 +92,11 @@ def month_close_and_prior_52w_high(ticker: str, asof: dt.date):
 
     prior_window_end = asof - pd.DateOffset(months=1)
     prior_52w = close_series[close_series.index <= prior_window_end].tail(252)
-    if prior_52w.empty:
+    if len(prior_52w) < MIN_HISTORY_DAYS:
+        # Not enough trading history yet (recent IPO, etc.) — skip rather
+        # than let a short, easily-beaten "52-week high" inflate the ratio.
+        print(f"[skip] {ticker}: only {len(prior_52w)} days of prior history "
+              f"(need {MIN_HISTORY_DAYS})")
         return None
     prior_high = prior_52w.max()
 
