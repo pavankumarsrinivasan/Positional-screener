@@ -40,7 +40,7 @@ from google.oauth2.service_account import Credentials
 NSE500_CSV_URL = "https://nsearchives.nseindia.com/content/indices/ind_nifty500list.csv"
 
 # --- Google Sheet the monthly top-30 list gets written into ---
-GOOGLE_SHEET_ID = "1pQwWkZxsNodAvUvfkjxgZRu-yZV-s3LebkVo6IrMm_Q"
+GOOGLE_SHEET_ID = "1uu26ezSua8Pg-GsQ7zZ2beZb-f138cCJRrvkaKOHssw"
 GOOGLE_WORKSHEET_NAME = "Sheet1"        # tab name in "Positional Screener Monthly Updater"
 SHEET_FIRST_DATA_ROW = 2               # row where each month's tickers start (row 1 = month headers)
 SHEET_STOCKS_PER_MONTH = 30            # matches the highlight_sell_column.gs script's assumptions
